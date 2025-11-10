@@ -1,0 +1,39 @@
+import asyncio
+from telethon import TelegramClient, events
+
+# 🔑 Your credentials (keep them private!)
+api_id = 25823077
+api_hash = "af88ba77a6bec996bb238c13dc4ef2b6"
+
+client = TelegramClient("userbot", api_id, api_hash)
+
+# Default delete delay
+DELETE_DELAY = 10
+
+# Command to change timer dynamically
+@client.on(events.NewMessage(pattern=r'^/settime (\d+)'))
+async def set_time(event):
+    global DELETE_DELAY
+    new_delay = int(event.pattern_match.group(1))
+    DELETE_DELAY = new_delay
+    await event.reply(f"⏱ Self-destruct timer updated to {DELETE_DELAY} seconds ✅")
+
+# Auto-delete all messages
+@client.on(events.NewMessage)
+async def auto_delete(event):
+    try:
+        # Ignore service messages
+        if event.is_channel and not event.is_group:
+            return
+
+        # Wait for current timer
+        await asyncio.sleep(DELETE_DELAY)
+
+        # Delete the message
+        await event.delete()
+    except Exception as e:
+        print("⚠️ Error:", e)
+
+print(f"🚀 Userbot running... Default delete timer: {DELETE_DELAY}s")
+client.start()
+client.run_until_disconnected()
